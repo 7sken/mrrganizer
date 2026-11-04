@@ -30,9 +30,9 @@ export default function Layout({ children }) {
   const current = NAV.find((n) => n.path === location.pathname)?.path ?? '/';
 
   return (
-    <Box sx={{ minHeight: '100vh', pb: { xs: 10, md: 4 } }}>
+    <Box sx={{ minHeight: '100vh', pb: { xs: 'calc(80px + env(safe-area-inset-bottom))', md: 4 } }}>
       <AppBar position="sticky" elevation={0} color="inherit"
-        sx={{ bgcolor: 'rgba(255,248,241,0.9)', backdropFilter: 'blur(8px)', borderBottom: '2px solid #f6e3d6' }}>
+        sx={{ pt: 'env(safe-area-inset-top)', bgcolor: 'rgba(255,248,241,0.9)', backdropFilter: 'blur(8px)', borderBottom: '2px solid #f6e3d6' }}>
         <Toolbar sx={{ gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }} onClick={() => navigate('/')}>
             <CatFace size={40} interactive={false} />
@@ -65,7 +65,7 @@ export default function Layout({ children }) {
         {children}
       </Container>
 
-      <Paper elevation={8} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: { xs: 'block', md: 'none' }, zIndex: 10, borderRadius: '20px 20px 0 0' }}>
+      <Paper elevation={8} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: { xs: 'block', md: 'none' }, zIndex: 10, borderRadius: '20px 20px 0 0', pb: 'env(safe-area-inset-bottom)' }}>
         <BottomNavigation value={current} onChange={(_, v) => navigate(v)} showLabels sx={{ borderRadius: '20px 20px 0 0' }}>
           {NAV.map((n) => (
             <BottomNavigationAction key={n.path} value={n.path} label={n.label} icon={n.icon} sx={{ minWidth: 0 }} />

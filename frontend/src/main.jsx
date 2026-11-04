@@ -26,3 +26,8 @@ createRoot(document.getElementById('root')).render(
     </ThemeProvider>
   </StrictMode>
 );
+
+// PWA: rejestracja service workera (tylko w wersji produkcyjnej, żeby nie przeszkadzał przy pisaniu kodu)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+}

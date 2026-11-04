@@ -11,6 +11,15 @@ Aplikacja webowa dla właścicieli kotów (i ich kolekcji karm). Pozwala:
 
 Kocia mordka jest interaktywna: oczy śledzą kursor, kot mruga, po kliknięciu mruczy, a jego nastrój zależy od stanu spiżarni. Przy wpisywaniu hasła zasłania oczy łapkami 🙈
 
+## Aplikacja na telefon (PWA)
+
+Mrrganizer działa jak aplikacja bez App Store / Google Play:
+
+- **iPhone (Safari):** Udostępnij → **Do ekranu początkowego**
+- **Android / Chrome:** przycisk **Zainstaluj** w banerze albo menu → „Zainstaluj aplikację”
+
+Po instalacji otwiera się na pełnym ekranie z własną ikonką, a interfejs ładuje się nawet bez internetu (dane zawsze idą z serwera). Pełne PWA (service worker) wymaga HTTPS – lokalnie działa na `localhost`, na telefonie po wystawieniu aplikacji pod domeną z certyfikatem.
+
 ## Frameworki
 
 | Rola | Framework | Do czego |
@@ -54,7 +63,7 @@ npm run dev         # http://localhost:5173
 
 ```bash
 cd backend  && npm test     # 37 testów – API, autoryzacja, izolacja danych, planer
-cd frontend && npm test     # 18 testów – komponent CatFace, logowanie, walidacja
+cd frontend && npm test     # 22 testy – komponent CatFace, logowanie, walidacja, baner PWA
 ```
 
 ## API REST
@@ -125,4 +134,4 @@ mrrganizer/
 
 1. **Aplikacja i API REST** – backend Express, baza, logowanie JWT, CRUD kotów, karm, posiłków i zadań.
 2. **Interfejs (framework UI)** – React + Material UI, interaktywne SVG, kreator kota, responsywność (telefon: dolne menu).
-3. **Testy, bezpieczeństwo, uruchomienie** – 55 testów w Vitest, zabezpieczenia z listy wyżej, Docker Compose.
+3. **Testy, bezpieczeństwo, uruchomienie** – 59 testów w Vitest, zabezpieczenia z listy wyżej, Docker Compose, PWA.

@@ -8,6 +8,7 @@ import CatsPage from './pages/CatsPage.jsx';
 import PantryPage from './pages/PantryPage.jsx';
 import PlannerPage from './pages/PlannerPage.jsx';
 import TasksPage from './pages/TasksPage.jsx';
+import InstallPrompt from './components/InstallPrompt.jsx';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -23,9 +24,12 @@ export default function App() {
   // Niezalogowany widzi tylko ekran logowania
   if (!user) {
     return (
-      <Routes>
-        <Route path="*" element={<AuthPage />} />
-      </Routes>
+      <>
+        <Routes>
+          <Route path="*" element={<AuthPage />} />
+        </Routes>
+        <InstallPrompt />
+      </>
     );
   }
 
@@ -39,6 +43,7 @@ export default function App() {
         <Route path="/zadania" element={<TasksPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <InstallPrompt />
     </Layout>
   );
 }
