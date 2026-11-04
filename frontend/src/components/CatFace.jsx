@@ -102,7 +102,7 @@ export default function CatFace({
 }) {
   const a = { ...DEFAULT_AVATAR, ...(avatar || {}) };
   const svgRef = useRef(null);
-  const uid = useId().replace(/:/g, '');
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, ''); // bezpieczne id dla clipPath (Safari)
   const [petted, setPetted] = useState(false);
   const [hearts, setHearts] = useState([]);
   const petTimer = useRef(null);
