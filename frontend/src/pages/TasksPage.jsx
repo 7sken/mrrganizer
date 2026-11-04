@@ -2,11 +2,12 @@
 import { useState } from 'react';
 import {
   Box, Typography, Button, IconButton, Chip, Stack, LinearProgress, TextField, MenuItem,
-  Checkbox, List, ListItem, ListItemIcon, ListItemText, ToggleButton, ToggleButtonGroup,
+  Checkbox, List, ListItem, ListItemIcon, ListItemText, ToggleButton, ToggleButtonGroup, Tooltip,
 } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import ShoppingCartCheckoutRoundedIcon from '@mui/icons-material/ShoppingCartCheckoutRounded';
+import NotificationsOffRoundedIcon from '@mui/icons-material/NotificationsOffRounded';
 import CatFace from '../components/CatFace.jsx';
 import FoodIcon from '../components/FoodIcon.jsx';
 import { PageHeader, SectionCard } from '../components/common.jsx';
@@ -60,6 +61,12 @@ export default function TasksPage() {
   const bought = async (food) => {
     await api.patch(`/foods/${food.id}/quantity`, { change: food.to_buy });
     notify(`+${food.to_buy} × ${food.brand} ${food.flavor} w spiżarni 🛒`);
+    reloadShopping();
+  };
+
+  const skip = async (food) => {
+    await api.patch(`/foods/${food.id}/active`, { active: false });
+    notify(`${food.brand} ${food.flavor}: nie kupuję, wyciszone 🔕`, 'info');
     reloadShopping();
   };
 
@@ -139,7 +146,8 @@ export default function TasksPage() {
 
         <SectionCard title="Lista zakupów" emoji="🛒" sx={{ bgcolor: '#fffdf7' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Tworzy się sama z karm, których zostało mało. „Kupione” dodaje sztuki do spiżarni.
+            Tworzy się sama z karm, których zostało mało. „Kupione” dodaje sztuki do spiżarni,
+            a 🔕 wycisza karmę, której już nie kupujesz (zostaje w spiżarni z ocenami kotów).
           </Typography>
           {shopping.length === 0 ? (
             <Typography sx={{ fontWeight: 700, py: 2 }}>Nic nie trzeba kupować 🎉</Typography>
@@ -149,13 +157,20 @@ export default function TasksPage() {
                 {shopping.map((f) => (
                   <ListItem key={f.id} disableGutters
                     secondaryAction={
-                      <Button size="small" variant="outlined" startIcon={<ShoppingCartCheckoutRoundedIcon />} onClick={() => bought(f)}>
-                        Kupione
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                        <Button size="small" variant="outlined" startIcon={<ShoppingCartCheckoutRoundedIcon />} onClick={() => bought(f)}>
+                          Kupione
+                        </Button>
+                        <Tooltip title="Nie kupuję – wycisz">
+                          <IconButton size="small" onClick={() => skip(f)} aria-label={`Nie kupuję: ${f.brand} ${f.flavor}`}>
+                            <NotificationsOffRoundedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     }>
                     <ListItemIcon sx={{ minWidth: 44 }}><FoodIcon type={f.type} brand={f.brand} size={34} /></ListItemIcon>
                     <ListItemText primary={`${f.to_buy} × ${f.brand}`} secondary={`${f.flavor} · masz ${f.quantity}`}
-                      slotProps={{ primary: { sx: { fontWeight: 700 } } }} sx={{ pr: 12 }} />
+                      slotProps={{ primary: { sx: { fontWeight: 700 } } }} sx={{ pr: 17 }} />
                   </ListItem>
                 ))}
               </List>

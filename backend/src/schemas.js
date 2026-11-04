@@ -48,6 +48,10 @@ export const quantitySchema = z.object({
   change: z.number().int().min(-999).max(999),
 });
 
+export const activeSchema = z.object({
+  active: z.boolean(),
+});
+
 export const ratingSchema = z.object({
   cat_id: z.number().int().positive(),
   rating: z.number().int().min(1).max(3),

@@ -63,7 +63,7 @@ export function mealsRouter(db) {
     const cats = db.prepare('SELECT id FROM cats WHERE user_id = ?').all(req.userId);
     const foods = db
       // do losowania bierzemy tylko mokre karmy (puszka/saszetka = 1 posiłek)
-      .prepare("SELECT * FROM foods WHERE user_id = ? AND type = 'mokra'")
+      .prepare("SELECT * FROM foods WHERE user_id = ? AND type = 'mokra' AND active = 1")
       .all(req.userId);
 
     if (!cats.length) return res.status(400).json({ error: 'Najpierw dodaj kota' });

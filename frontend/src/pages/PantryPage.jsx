@@ -2,8 +2,10 @@
 import { useMemo, useState } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, IconButton, Chip, Stack, LinearProgress,
-  TextField, Tabs, Tab, Tooltip, InputAdornment,
+  TextField, Tabs, Tab, Tooltip, InputAdornment, FormControlLabel, Switch,
 } from '@mui/material';
+import NotificationsOffRoundedIcon from '@mui/icons-material/NotificationsOffRounded';
+import NotificationsActiveRoundedIcon from '@mui/icons-material/NotificationsActiveRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
@@ -24,6 +26,7 @@ const STATUS = {
   low: { label: 'Kończy się', color: 'warning' },
   expiring: { label: 'Termin się zbliża', color: 'info' },
   ok: { label: 'W porządku', color: 'success' },
+  inactive: { label: 'Nieużywana – alerty wyciszone', color: 'default' },
 };
 
 function RatingRow({ cat, value, onRate }) {
@@ -55,6 +58,7 @@ export default function PantryPage() {
   const { data: cats } = useData('/cats', []);
   const [type, setType] = useState('all');
   const [q, setQ] = useState('');
+  const [hideInactive, setHideInactive] = useState(false);
   const [dialog, setDialog] = useState({ open: false, food: null });
   const notify = useNotify();
 
@@ -62,13 +66,21 @@ export default function PantryPage() {
     const query = q.trim().toLowerCase();
     return foods.filter(
       (f) => (type === 'all' || f.type === type) &&
+        (!hideInactive || f.active) &&
         (!query || `${f.brand} ${f.flavor}`.toLowerCase().includes(query))
     );
-  }, [foods, type, q]);
+  }, [foods, type, q, hideInactive]);
+
+  const inactiveCount = foods.filter((f) => !f.active).length;
 
   const replace = (updated) => setFoods((list) => list.map((f) => (f.id === updated.id ? updated : f)));
 
   const changeQty = async (food, change) => replace(await api.patch(`/foods/${food.id}/quantity`, { change }));
+
+  const toggleActive = async (food) => {
+    replace(await api.patch(`/foods/${food.id}/active`, { active: !food.active }));
+    notify(food.active ? `${food.brand} ${food.flavor}: wyciszone 🔕` : `${food.brand} ${food.flavor}: znowu na liście 🔔`, 'info');
+  };
 
   const rate = async (food, cat, rating) => {
     replace(await api.put(`/foods/${food.id}/rating`, { cat_id: cat.id, rating }));
@@ -102,7 +114,12 @@ export default function PantryPage() {
           <Tab value="all" label="Wszystko" />
           {Object.entries(FOOD_TYPES).map(([v, l]) => <Tab key={v} value={v} label={l} />)}
         </Tabs>
-        <TextField placeholder="Szukaj marki lub smaku…" value={q} onChange={(e) => setQ(e.target.value)} sx={{ maxWidth: { sm: 320 }, ml: { sm: 'auto' } }}
+        {inactiveCount > 0 && (
+          <FormControlLabel sx={{ ml: { sm: 'auto' }, whiteSpace: 'nowrap' }}
+            control={<Switch checked={hideInactive} onChange={(e) => setHideInactive(e.target.checked)} />}
+            label={`Ukryj nieużywane (${inactiveCount})`} />
+        )}
+        <TextField placeholder="Szukaj marki lub smaku…" value={q} onChange={(e) => setQ(e.target.value)} sx={{ maxWidth: { sm: 320 }, ml: { sm: inactiveCount > 0 ? 0 : 'auto' } }}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchRoundedIcon /></InputAdornment> } }} />
       </Box>
 
@@ -117,7 +134,8 @@ export default function PantryPage() {
             const status = STATUS[foodStatus(food)];
             const fill = Math.min(100, (food.quantity / Math.max(1, food.min_quantity * 3)) * 100);
             return (
-              <Card key={food.id} data-testid="food-card">
+              <Card key={food.id} data-testid="food-card"
+                sx={!food.active ? { opacity: 0.6, bgcolor: '#faf6f3', '& .MuiLinearProgress-root': { filter: 'grayscale(1)' } } : undefined}>
                 <CardContent>
                   <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
                     <FoodIcon type={food.type} brand={food.brand} size={60} empty={food.quantity === 0} />
@@ -128,7 +146,14 @@ export default function PantryPage() {
                         {FOOD_TYPES[food.type]} · {food.weight_g} g{food.price != null && ` · ${food.price.toFixed(2)} zł`}
                       </Typography>
                     </Box>
-                    <Box>
+                    <Box sx={{ display: 'flex', flexShrink: 0 }}>
+                      <Tooltip title={food.active ? 'Już nie kupuję – wycisz alerty' : 'Znowu kupuję – włącz alerty'}>
+                        <IconButton size="small" onClick={() => toggleActive(food)}
+                          aria-label={food.active ? 'Oznacz jako nieużywaną' : 'Oznacz jako używaną'}
+                          color={food.active ? 'default' : 'primary'}>
+                          {food.active ? <NotificationsOffRoundedIcon fontSize="small" /> : <NotificationsActiveRoundedIcon fontSize="small" />}
+                        </IconButton>
+                      </Tooltip>
                       <IconButton size="small" onClick={() => setDialog({ open: true, food })} aria-label="Edytuj"><EditRoundedIcon fontSize="small" /></IconButton>
                       <IconButton size="small" onClick={() => remove(food)} aria-label="Usuń"><DeleteOutlineRoundedIcon fontSize="small" /></IconButton>
                     </Box>

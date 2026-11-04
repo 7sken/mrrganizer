@@ -25,7 +25,7 @@ export function dashboardRouter(db) {
 
     const lowStock = db
       .prepare(
-        'SELECT id, brand, flavor, quantity, min_quantity FROM foods WHERE user_id = ? AND quantity <= min_quantity ORDER BY quantity'
+        'SELECT id, brand, flavor, quantity, min_quantity FROM foods WHERE user_id = ? AND active = 1 AND quantity <= min_quantity ORDER BY quantity'
       )
       .all(uid);
 

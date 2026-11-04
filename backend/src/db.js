@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS foods (
   quantity     INTEGER NOT NULL DEFAULT 0,
   min_quantity INTEGER NOT NULL DEFAULT 2,
   price        REAL,
-  expiry_date  TEXT
+  expiry_date  TEXT,
+  active       INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS ratings (
@@ -71,5 +72,15 @@ export function createDb(dbPath) {
   const db = new DatabaseSync(dbPath);
   db.exec('PRAGMA foreign_keys = ON;');
   db.exec(SCHEMA);
+  migrate(db);
   return db;
+}
+
+// Proste migracje dla baz założonych przed dodaniem nowych kolumn
+function migrate(db) {
+  const foodCols = db.prepare('PRAGMA table_info(foods)').all().map((c) => c.name);
+  if (!foodCols.includes('active')) {
+    // active = 0 → "nieużywana": nie kupuję jej już, więc bez alertów i listy zakupów
+    db.exec('ALTER TABLE foods ADD COLUMN active INTEGER NOT NULL DEFAULT 1');
+  }
 }

@@ -55,6 +55,7 @@ export function catAge(birthDate, today = todayIso()) {
 
 // Status karmy na podstawie stanu i daty ważności
 export function foodStatus(food, today = todayIso()) {
+  if (food.active === false) return 'inactive'; // nie kupuję jej już – bez alertów
   if (food.expiry_date && food.quantity > 0 && food.expiry_date < today) return 'expired';
   if (food.quantity === 0) return 'empty';
   if (food.quantity <= food.min_quantity) return 'low';

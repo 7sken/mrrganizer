@@ -1,7 +1,7 @@
 // /api/foods – spiżarnia: karmy, stan magazynu, oceny kotów, lista zakupów
 import { Router } from 'express';
 import { validate, parseId } from '../middleware/validate.js';
-import { foodSchema, quantitySchema, ratingSchema } from '../schemas.js';
+import { foodSchema, quantitySchema, ratingSchema, activeSchema } from '../schemas.js';
 
 export function foodsRouter(db) {
   const router = Router();
@@ -14,7 +14,7 @@ export function foodsRouter(db) {
     const rows = db.prepare('SELECT cat_id, rating FROM ratings WHERE food_id = ?').all(food.id);
     const ratings = Object.fromEntries(rows.map((r) => [r.cat_id, r.rating]));
     const avg = rows.length ? rows.reduce((s, r) => s + r.rating, 0) / rows.length : null;
-    return { ...food, ratings, avgRating: avg };
+    return { ...food, active: Boolean(food.active), ratings, avgRating: avg };
   };
 
   router.get('/', (req, res) => {
@@ -31,17 +31,17 @@ export function foodsRouter(db) {
       sql += ' AND (brand LIKE ? OR flavor LIKE ?)';
       params.push(`%${q.trim()}%`, `%${q.trim()}%`);
     }
-    sql += ' ORDER BY brand, flavor';
+    sql += ' ORDER BY active DESC, brand, flavor'; // nieużywane na końcu
 
     res.json(db.prepare(sql).all(...params).map(withRatings));
   });
 
-  // Lista zakupów: karmy, których stan spadł do minimum lub niżej
+  // Lista zakupów: używane karmy, których stan spadł do minimum lub niżej
   router.get('/shopping-list', (req, res) => {
     const rows = db
       .prepare(
         `SELECT *, MAX(1, min_quantity * 2 - quantity) AS to_buy
-         FROM foods WHERE user_id = ? AND quantity <= min_quantity
+         FROM foods WHERE user_id = ? AND active = 1 AND quantity <= min_quantity
          ORDER BY quantity ASC`
       )
       .all(req.userId);
@@ -83,14 +83,30 @@ export function foodsRouter(db) {
     res.json(withRatings(findOwn(id, req.userId)));
   });
 
-  // Szybka zmiana stanu (+1 kupiłem, -1 zużyłem); stan nie spada poniżej zera
+  // Szybka zmiana stanu (+1 kupiłem, -1 zużyłem); stan nie spada poniżej zera.
+  // Dokupienie karmy (change > 0) automatycznie oznacza ją znowu jako używaną.
   router.patch('/:id/quantity', validate(quantitySchema), (req, res) => {
     const id = parseId(req.params.id);
     if (!findOwn(id, req.userId)) return res.status(404).json({ error: 'Nie znaleziono karmy' });
 
     db.prepare(
-      'UPDATE foods SET quantity = MAX(0, quantity + ?) WHERE id = ? AND user_id = ?'
-    ).run(req.body.change, id, req.userId);
+      `UPDATE foods SET quantity = MAX(0, quantity + ?),
+       active = CASE WHEN ? > 0 THEN 1 ELSE active END
+       WHERE id = ? AND user_id = ?`
+    ).run(req.body.change, req.body.change, id, req.userId);
+    res.json(withRatings(findOwn(id, req.userId)));
+  });
+
+  // Używana / nieużywana – nieużywanej już nie kupuję: znika z alertów, listy zakupów i losowania menu
+  router.patch('/:id/active', validate(activeSchema), (req, res) => {
+    const id = parseId(req.params.id);
+    if (!findOwn(id, req.userId)) return res.status(404).json({ error: 'Nie znaleziono karmy' });
+
+    db.prepare('UPDATE foods SET active = ? WHERE id = ? AND user_id = ?').run(
+      req.body.active ? 1 : 0,
+      id,
+      req.userId
+    );
     res.json(withRatings(findOwn(id, req.userId)));
   });
 

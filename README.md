@@ -7,6 +7,7 @@ Aplikacja webowa dla właścicieli kotów (i ich kolekcji karm). Pozwala:
 - układać **plan karmienia** na tydzień (rano / wieczór) – ręcznie albo przyciskiem **„Losuj menu”**,
 - odhaczać posiłki jako **podane** – puszka sama znika ze stanu,
 - prowadzić **listę zadań** (weterynarz, żwirek, odrobaczanie…) i automatyczną **listę zakupów**,
+- oznaczać karmy jako **nieużywane** (już ich nie kupujesz) – znikają z alertów i listy zakupów, ale zostają w spiżarni z ocenami,
 - tworzyć **awatary kotów** w kreatorze (futro, umaszczenie, oczy, dodatki).
 
 Kocia mordka jest interaktywna: oczy śledzą kursor, kot mruga, po kliknięciu mruczy, a jego nastrój zależy od stanu spiżarni. Przy wpisywaniu hasła zasłania oczy łapkami 🙈
@@ -62,7 +63,7 @@ npm run dev         # http://localhost:5173
 ## Testy
 
 ```bash
-cd backend  && npm test     # 37 testów – API, autoryzacja, izolacja danych, planer
+cd backend  && npm test     # 47 testów – API, autoryzacja, izolacja danych, planer, migracja bazy
 cd frontend && npm test     # 22 testy – komponent CatFace, logowanie, walidacja, baner PWA
 ```
 
@@ -80,6 +81,7 @@ Wszystkie endpointy poza `/api/auth/*` i `/api/health` wymagają nagłówka `Aut
 | GET / POST | `/api/foods` | lista karm (`?type=mokra&q=szukaj`) / dodanie |
 | GET / PUT / DELETE | `/api/foods/:id` | szczegóły / edycja / usunięcie |
 | PATCH | `/api/foods/:id/quantity` | zmiana stanu `{ change: -1 }` |
+| PATCH | `/api/foods/:id/active` | używana / nieużywana `{ active: false }` |
 | PUT | `/api/foods/:id/rating` | ocena kota `{ cat_id, rating: 1-3 }` |
 | GET | `/api/foods/shopping-list` | lista zakupów (to, co się kończy) |
 | GET / POST | `/api/meals` | plan (`?start=&end=`) / dodanie posiłku |
@@ -134,4 +136,4 @@ mrrganizer/
 
 1. **Aplikacja i API REST** – backend Express, baza, logowanie JWT, CRUD kotów, karm, posiłków i zadań.
 2. **Interfejs (framework UI)** – React + Material UI, interaktywne SVG, kreator kota, responsywność (telefon: dolne menu).
-3. **Testy, bezpieczeństwo, uruchomienie** – 59 testów w Vitest, zabezpieczenia z listy wyżej, Docker Compose, PWA.
+3. **Testy, bezpieczeństwo, uruchomienie** – 69 testów w Vitest, zabezpieczenia z listy wyżej, Docker Compose, PWA.

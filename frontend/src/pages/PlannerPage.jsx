@@ -179,7 +179,7 @@ export default function PlannerPage() {
           </MenuItem>
         )}
         <Divider />
-        {foods.filter((f) => f.type !== 'przysmak').map((f) => (
+        {foods.filter((f) => f.type !== 'przysmak' && f.active).map((f) => (
           <MenuItem key={f.id} onClick={() => pickFood(f)} disabled={f.quantity === 0 && f.type === 'mokra'}>
             <ListItemIcon><FoodIcon type={f.type} brand={f.brand} size={28} /></ListItemIcon>
             <ListItemText primary={`${f.brand} – ${f.flavor}`} secondary={`na stanie: ${f.quantity} szt.`} />

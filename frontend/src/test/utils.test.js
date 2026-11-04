@@ -27,6 +27,7 @@ describe('Funkcje pomocnicze', () => {
     expect(foodStatus({ ...base, quantity: 0 }, today)).toBe('empty');
     expect(foodStatus({ ...base, expiry_date: '2026-11-01' }, today)).toBe('expired');
     expect(foodStatus({ ...base, expiry_date: '2026-11-10' }, today)).toBe('expiring');
+    expect(foodStatus({ ...base, quantity: 0, active: false }, today)).toBe('inactive');
   });
 
   it('liczy wiek kota', () => {
